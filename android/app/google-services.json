@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "994495544268",
+    "project_id": "taskflow-ai-assistant",
+    "storage_bucket": "taskflow-ai-assistant.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:994495544268:android:fffabacf9e199b62e83b69",
+        "android_client_info": {
+          "package_name": "com.codehub.taskflow_ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "994495544268-tijtkim8mu4sedsdoj3e27mpvq5ad05h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZyHzoqvVXEYwm_AeN-l2joKqVbZAOfqI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "994495544268-tijtkim8mu4sedsdoj3e27mpvq5ad05h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
