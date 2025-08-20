@@ -1,2 +1,6 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Tell GitHub Linguist to treat everything in lib/ as Dart
+lib/* linguist-language=Dart
+
+# Exclude Android and iOS native code from language stats
+android/* linguist-vendored
+ios/* linguist-vendored
