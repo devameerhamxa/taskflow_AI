@@ -15,6 +15,14 @@
       "oauth_client": [
         {
           "client_id": "994495544268-tijtkim8mu4sedsdoj3e27mpvq5ad05h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.codehub.taskflow_ai",
+            "certificate_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+          }
+        },
+        {
+          "client_id": "994495544268-tijtkim8mu4sedsdoj3e27mpvq5ad05h.apps.googleusercontent.com",
           "client_type": 3
         }
       ],

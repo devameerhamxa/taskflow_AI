@@ -83,8 +83,11 @@ class FirebaseAuthRepository implements AuthRepository {
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
-    } on FirebaseAuthException {
-      rethrow;
+    } catch (e) {
+      throw FirebaseAuthException(
+        code: 'google-sign-in-failed',
+        message: 'Google Sign-In failed: ${e.toString()}',
+      );
     }
   }
 
