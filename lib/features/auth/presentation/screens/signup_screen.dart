@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:taskflow_ai/core/constants/app_theme.dart';
 import 'package:taskflow_ai/features/auth/application/auth_providers.dart';
 import 'package:taskflow_ai/features/auth/presentation/screens/verify_email_screen.dart';
+import 'package:taskflow_ai/features/tasks/presentation/screens/task_list_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -60,7 +61,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     // Navigate to verify email screen after successful Google signup
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
+        MaterialPageRoute(builder: (_) => const TaskListScreen()),
       );
     }
   }

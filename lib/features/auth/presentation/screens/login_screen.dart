@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -189,7 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         );
                       },
                       child: RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           style: TextStyle(
                             color: AppTheme.primaryColor,
                             fontWeight: FontWeight.w600,
@@ -200,6 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               text: 'Sign Up',
                               style: TextStyle(
                                 decoration: TextDecoration.underline,
+                                color: Colors.amber.withOpacity(0.7),
                               ),
                             ),
                           ],

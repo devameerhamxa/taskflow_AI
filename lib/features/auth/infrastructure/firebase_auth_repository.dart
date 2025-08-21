@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -47,7 +49,7 @@ class FirebaseAuthRepository implements AuthRepository {
               });
         } catch (firestoreError) {
           // Log Firestore error but don't fail the signup
-          print('Firestore error: $firestoreError');
+          log('Firestore error: $firestoreError');
         }
       }
     } on FirebaseAuthException {
@@ -113,7 +115,7 @@ class FirebaseAuthRepository implements AuthRepository {
               });
         } catch (firestoreError) {
           // Log Firestore error but don't fail the signup
-          print('Firestore error: $firestoreError');
+          log('Firestore error: $firestoreError');
         }
       }
     } on FirebaseAuthException {
