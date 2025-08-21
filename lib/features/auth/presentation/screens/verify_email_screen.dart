@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:taskflow_ai/core/constants/app_theme.dart';
 import 'package:taskflow_ai/features/auth/application/auth_providers.dart';
+import 'package:taskflow_ai/features/auth/presentation/screens/auth_gate.dart';
 
 class VerifyEmailScreen extends ConsumerStatefulWidget {
   const VerifyEmailScreen({super.key});
@@ -19,7 +20,10 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   void initState() {
     super.initState();
     // Periodically check if the user has verified their email.
-    _timer = Timer.periodic(const Duration(seconds: 3), (_) => _checkEmailVerified());
+    _timer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => _checkEmailVerified(),
+    );
   }
 
   @override
@@ -29,11 +33,16 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   }
 
   Future<void> _checkEmailVerified() async {
-    final user = ref.read(authControllerProvider.notifier).currentUser;
-    await user?.reload();
-    if (user?.emailVerified ?? false) {
-      _timer?.cancel();
-      // The AuthGate will automatically navigate to the main app.
+    try {
+      final user = ref.read(authControllerProvider.notifier).currentUser;
+      await user?.reload();
+      if (user?.emailVerified ?? false) {
+        _timer?.cancel();
+
+        // The AuthGate will automatically navigate to the main app.
+      }
+    } catch (e) {
+      // Ignore errors during email verification check
     }
   }
 
@@ -42,18 +51,41 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
-  
+
   void _resendVerificationEmail() {
-    ref.read(authControllerProvider.notifier).sendEmailVerification(_showErrorSnackbar);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Verification email sent!'), backgroundColor: Colors.green),
-    );
+    try {
+      ref
+          .read(authControllerProvider.notifier)
+          .sendEmailVerification(_showErrorSnackbar);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Verification email sent!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      _showErrorSnackbar('Failed to send verification email');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final userEmail = ref.watch(authControllerProvider.notifier).currentUser?.email ?? 'your email';
+    final userEmail =
+        ref.watch(authControllerProvider.notifier).currentUser?.email ??
+        'your email';
+
+    // Listen for auth state changes to navigate when user signs out
+    ref.listen(authStateChangesProvider, (previous, next) {
+      next.whenData((user) {
+        if (user == null && mounted) {
+          // User signed out, navigate back to AuthGate
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const AuthGate()),
+          );
+        }
+      });
+    });
 
     return Scaffold(
       appBar: AppBar(title: const Text('Verify Your Email')),
@@ -64,7 +96,11 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.email_outlined, size: 80, color: AppTheme.primaryColor),
+              const Icon(
+                Icons.email_outlined,
+                size: 80,
+                color: AppTheme.primaryColor,
+              ),
               const SizedBox(height: 24),
               Text(
                 'Check Your Inbox',
@@ -87,14 +123,24 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                   backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: const Text('Resend Email', style: TextStyle(fontSize: 16)),
+                child: const Text(
+                  'Resend Email',
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
               const SizedBox(height: 16),
+
               TextButton(
-                onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
-                child: const Text('Cancel', style: TextStyle(color: AppTheme.primaryColor)),
+                onPressed: () =>
+                    ref.read(authControllerProvider.notifier).signOut(),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: AppTheme.primaryColor),
+                ),
               ),
             ],
           ),

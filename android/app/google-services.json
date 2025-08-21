@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "994495544268-tijtkim8mu4sedsdoj3e27mpvq5ad05h.apps.googleusercontent.com",
+          "client_id": "994495544268-78l2dk27l2rsg4j5bh9nko6bku29bfrn.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.codehub.taskflow_ai",
-            "certificate_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+            "certificate_hash": "970a75ae8d97c86824610ea14b9a9c95266c12ac"
           }
         },
         {
@@ -37,6 +37,13 @@
             {
               "client_id": "994495544268-tijtkim8mu4sedsdoj3e27mpvq5ad05h.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "994495544268-7s7ljl658du883g2orspb8djor1rlqnk.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.taskflowAi"
+              }
             }
           ]
         }
