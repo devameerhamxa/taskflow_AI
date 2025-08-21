@@ -28,9 +28,8 @@ class AuthGate extends ConsumerWidget {
         return const LoginScreen();
       },
       loading: () => const SplashScreen(),
-      error: (error, stackTrace) => Scaffold(
-        body: Center(child: Text('An error occurred: $error')),
-      ),
+      error: (error, stackTrace) =>
+          Scaffold(body: Center(child: Text('An error occurred: $error'))),
     );
   }
 }

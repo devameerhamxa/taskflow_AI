@@ -18,7 +18,9 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
 
 // 3. Auth Controller Provider (StateNotifier)
 // This handles the business logic (calling repository methods) and manages UI state.
-final authControllerProvider = StateNotifierProvider<AuthController, bool>((ref) {
+final authControllerProvider = StateNotifierProvider<AuthController, bool>((
+  ref,
+) {
   final authRepository = ref.watch(authRepositoryProvider);
   return AuthController(authRepository, ref);
 });
@@ -43,7 +45,11 @@ class AuthController extends StateNotifier<bool> {
   }) async {
     state = true; // Set loading state
     try {
-      await _authRepository.signUpWithEmailAndPassword(email: email, password: password, name: name);
+      await _authRepository.signUpWithEmailAndPassword(
+        email: email,
+        password: password,
+        name: name,
+      );
       await _authRepository.sendEmailVerification();
     } on FirebaseAuthException catch (e) {
       onError(e.message ?? 'An unknown error occurred.');
@@ -53,7 +59,11 @@ class AuthController extends StateNotifier<bool> {
   }
 
   // Sign in with email and password
-  Future<void> signInWithEmailAndPassword(String email, String password, Function(String) onError) async {
+  Future<void> signInWithEmailAndPassword(
+    String email,
+    String password,
+    Function(String) onError,
+  ) async {
     state = true;
     try {
       await _authRepository.signInWithEmailAndPassword(email, password);
@@ -75,7 +85,7 @@ class AuthController extends StateNotifier<bool> {
       state = false;
     }
   }
-  
+
   // Send email verification
   Future<void> sendEmailVerification(Function(String) onError) async {
     state = true;
