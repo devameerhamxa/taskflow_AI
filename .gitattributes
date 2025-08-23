@@ -1,2 +1,2 @@
-* linguist-vendored
-lib/* linguist-language=Dart
+# Force every file in the repo to be Dart
+* linguist-language=Dart
