@@ -1,6 +1,10 @@
-# Tell GitHub Linguist to treat everything in lib/ as Dart
+# Tell Linguist to treat all files in lib/ as Dart
 lib/* linguist-language=Dart
 
-# Exclude Android and iOS native code from language stats
+# Ignore Android and iOS native code
 android/* linguist-vendored
 ios/* linguist-vendored
+
+# Ignore build and web auto-generated files
+build/* linguist-vendored
+web/* linguist-vendored
