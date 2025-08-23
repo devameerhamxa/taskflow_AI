@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskflow_ai/features/auth/domain/auth_repository.dart';
+import 'package:taskflow_ai/features/auth/domain/user_profile_model.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
   final FirebaseAuth _firebaseAuth;
@@ -23,6 +24,22 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   User? get currentUser => _firebaseAuth.currentUser;
+
+  // --- NEW METHOD IMPLEMENTATION ---
+  @override
+  Future<UserProfile?> getUserProfile(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) {
+        return UserProfile.fromFirestore(doc);
+      }
+      return null;
+    } catch (e) {
+      log("Error getting user profile: $e");
+      return null;
+    }
+  }
+  // ---------------------------------
 
   @override
   Future<void> signUpWithEmailAndPassword({
@@ -48,22 +65,17 @@ class FirebaseAuthRepository implements AuthRepository {
                 'createdAt': FieldValue.serverTimestamp(),
               });
         } catch (firestoreError) {
-          // Log Firestore error but don't fail the signup
           log('Firestore error: $firestoreError');
         }
       }
     } on FirebaseAuthException {
-      // Re-throw the exception to be handled by the UI layer
       rethrow;
     } catch (e) {
-      // Handle PigeonUserDetails type casting errors
       if (e.toString().contains('PigeonUserDetails') ||
           e.toString().contains('PigeonUserInfo') ||
           e.toString().contains('type cast')) {
-        // Sign-up was successful despite the error, so don't throw
         return;
       }
-      // Handle any other unexpected errors
       throw FirebaseAuthException(
         code: 'signup-failed',
         message: 'Sign up failed: ${e.toString()}',
@@ -88,7 +100,6 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        // The user canceled the sign-in
         return;
       }
       final GoogleSignInAuthentication googleAuth =
@@ -101,7 +112,6 @@ class FirebaseAuthRepository implements AuthRepository {
         credential,
       );
 
-      // If it's a new user, create a document in Firestore
       if (userCredential.additionalUserInfo?.isNewUser == true &&
           userCredential.user != null) {
         try {
@@ -114,17 +124,14 @@ class FirebaseAuthRepository implements AuthRepository {
                 'createdAt': FieldValue.serverTimestamp(),
               });
         } catch (firestoreError) {
-          // Log Firestore error but don't fail the signup
           log('Firestore error: $firestoreError');
         }
       }
     } on FirebaseAuthException {
       rethrow;
     } catch (e) {
-      // Ignore type casting errors but still allow sign-in to proceed
       if (e.toString().contains('PigeonUserInfo') ||
           e.toString().contains('type cast')) {
-        // Sign-in was successful despite the error, so don't throw
         return;
       }
       throw FirebaseAuthException(

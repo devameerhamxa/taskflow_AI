@@ -4,7 +4,7 @@ import 'package:taskflow_ai/features/auth/application/auth_providers.dart';
 import 'package:taskflow_ai/features/auth/presentation/screens/login_screen.dart';
 import 'package:taskflow_ai/features/auth/presentation/screens/splash_screen.dart';
 import 'package:taskflow_ai/features/auth/presentation/screens/verify_email_screen.dart';
-import 'package:taskflow_ai/features/tasks/presentation/screens/task_list_screen.dart';
+import 'package:taskflow_ai/features/dashboard/presentation/screens/home_screen.dart';
 
 class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});
@@ -23,7 +23,7 @@ class AuthGate extends ConsumerWidget {
             return const VerifyEmailScreen();
           }
           // If verified or a Google user, show the main app.
-          return const TaskListScreen();
+          return const HomeScreen();
         }
         // If the user is not logged in, show the LoginScreen.
         return const LoginScreen();
