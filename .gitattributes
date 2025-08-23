@@ -1,10 +1,18 @@
-# Tell Linguist to treat all files in lib/ as Dart
+# Force all files in lib/ to be recognized as Dart
 lib/* linguist-language=Dart
 
-# Ignore Android and iOS native code
+# Mark common Flutter non-Dart code as vendored so it won't affect stats
 android/* linguist-vendored
 ios/* linguist-vendored
-
-# Ignore build and web auto-generated files
-build/* linguist-vendored
 web/* linguist-vendored
+build/* linguist-vendored
+test/* linguist-vendored
+*.md linguist-vendored
+*.yaml linguist-vendored
+*.yml linguist-vendored
+*.json linguist-vendored
+*.lock linguist-vendored
+*.gradle linguist-vendored
+*.properties linguist-vendored
+*.xc* linguist-vendored
+*.plist linguist-vendored
