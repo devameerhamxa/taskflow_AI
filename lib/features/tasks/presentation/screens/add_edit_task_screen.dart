@@ -4,12 +4,19 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import 'package:taskflow_ai/core/constants/app_theme.dart';
+import 'package:taskflow_ai/features/ai_tools/domain/parsed_task_data_model.dart';
 import 'package:taskflow_ai/features/tasks/application/task_providers.dart';
 import 'package:taskflow_ai/features/tasks/domain/task_model.dart';
 
 class AddEditTaskScreen extends ConsumerStatefulWidget {
   final Task? task;
-  const AddEditTaskScreen({super.key, this.task});
+  final ParsedTaskData? parsedTaskData; // New property
+
+  const AddEditTaskScreen({
+    super.key,
+    this.task,
+    this.parsedTaskData, // Add to constructor
+  });
 
   @override
   ConsumerState<AddEditTaskScreen> createState() => _AddEditTaskScreenState();
@@ -27,13 +34,21 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.task?.title ?? '');
+    // Pre-fill from parsed data if available, otherwise use existing logic
+    _titleController = TextEditingController(
+      text: widget.parsedTaskData?.title ?? widget.task?.title ?? '',
+    );
     _descriptionController = TextEditingController(
       text: widget.task?.description ?? '',
     );
     _dueDate =
-        widget.task?.dueDate ?? DateTime.now().add(const Duration(days: 1));
-    _priority = widget.task?.priority ?? TaskPriority.medium;
+        widget.parsedTaskData?.dueDate ??
+        widget.task?.dueDate ??
+        DateTime.now().add(const Duration(days: 1));
+    _priority =
+        widget.parsedTaskData?.priority ??
+        widget.task?.priority ??
+        TaskPriority.medium;
   }
 
   @override

@@ -15,25 +15,21 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
   return authRepository.authStateChanges;
 });
 
-// --- NEW USER PROFILE PROVIDER ---
-// This provider fetches the UserProfile data from Firestore.
-final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
-  final authRepository = ref.watch(authRepositoryProvider);
-  final user = ref.watch(authStateChangesProvider).value;
-
-  if (user != null) {
-    return authRepository.getUserProfile(user.uid);
-  }
-  return null;
-});
-// --------------------------------
-
 // 3. Auth Controller Provider (StateNotifier)
 final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   ref,
 ) {
   final authRepository = ref.watch(authRepositoryProvider);
   return AuthController(authRepository, ref);
+});
+
+// 4. User Profile Provider
+// Fetches the profile of the currently logged-in user.
+final userProfileProvider = FutureProvider<UserProfile?>((ref) {
+  // Watching authStateChangesProvider ensures this provider re-runs on login/logout
+  ref.watch(authStateChangesProvider);
+  final authRepository = ref.watch(authRepositoryProvider);
+  return authRepository.getUserProfile();
 });
 
 class AuthController extends StateNotifier<bool> {

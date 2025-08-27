@@ -25,21 +25,24 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   User? get currentUser => _firebaseAuth.currentUser;
 
-  // --- NEW METHOD IMPLEMENTATION ---
   @override
-  Future<UserProfile?> getUserProfile(String uid) async {
+  Future<UserProfile?> getUserProfile() async {
+    if (currentUser == null) return null;
     try {
-      final doc = await _firestore.collection('users').doc(uid).get();
-      if (doc.exists) {
-        return UserProfile.fromFirestore(doc);
+      final docSnapshot = await _firestore
+          .collection('users')
+          .doc(currentUser!.uid)
+          .get();
+      if (docSnapshot.exists) {
+        // This will now work correctly
+        return UserProfile.fromSnapshot(docSnapshot);
       }
       return null;
     } catch (e) {
-      log("Error getting user profile: $e");
+      log(e.toString());
       return null;
     }
   }
-  // ---------------------------------
 
   @override
   Future<void> signUpWithEmailAndPassword({
@@ -54,42 +57,18 @@ class FirebaseAuthRepository implements AuthRepository {
       );
 
       if (userCredential.user != null) {
-        // Create a new user document in Firestore
-        try {
-          await _firestore
-              .collection('users')
-              .doc(userCredential.user!.uid)
-              .set({
-                'name': name,
-                'email': email,
-                'createdAt': FieldValue.serverTimestamp(),
-              });
-        } catch (firestoreError) {
-          log('Firestore error: $firestoreError');
-        }
+        final userProfile = UserProfile(
+          id: userCredential.user!.uid, // Correctly using 'id'
+          name: name,
+          email: email,
+          createdAt: DateTime.now(), // This is a placeholder
+        );
+        // This will now work correctly
+        await _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set(userProfile.toJson());
       }
-    } on FirebaseAuthException {
-      rethrow;
-    } catch (e) {
-      if (e.toString().contains('PigeonUserDetails') ||
-          e.toString().contains('PigeonUserInfo') ||
-          e.toString().contains('type cast')) {
-        return;
-      }
-      throw FirebaseAuthException(
-        code: 'signup-failed',
-        message: 'Sign up failed: ${e.toString()}',
-      );
-    }
-  }
-
-  @override
-  Future<void> signInWithEmailAndPassword(String email, String password) async {
-    try {
-      await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
     } on FirebaseAuthException {
       rethrow;
     }
@@ -99,9 +78,7 @@ class FirebaseAuthRepository implements AuthRepository {
   Future<void> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return;
-      }
+      if (googleUser == null) return;
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
@@ -114,30 +91,34 @@ class FirebaseAuthRepository implements AuthRepository {
 
       if (userCredential.additionalUserInfo?.isNewUser == true &&
           userCredential.user != null) {
-        try {
-          await _firestore
-              .collection('users')
-              .doc(userCredential.user!.uid)
-              .set({
-                'name': userCredential.user!.displayName,
-                'email': userCredential.user!.email,
-                'createdAt': FieldValue.serverTimestamp(),
-              });
-        } catch (firestoreError) {
-          log('Firestore error: $firestoreError');
-        }
+        final userProfile = UserProfile(
+          id: userCredential.user!.uid, // Correctly using 'id'
+          name: userCredential.user!.displayName ?? 'No Name',
+          email: userCredential.user!.email!,
+          createdAt: DateTime.now(), // This is a placeholder
+        );
+        // This will now work correctly
+        await _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set(userProfile.toJson());
       }
     } on FirebaseAuthException {
       rethrow;
-    } catch (e) {
-      if (e.toString().contains('PigeonUserInfo') ||
-          e.toString().contains('type cast')) {
-        return;
-      }
-      throw FirebaseAuthException(
-        code: 'google-sign-in-failed',
-        message: 'Google Sign-In failed: ${e.toString()}',
+    }
+  }
+
+  // --- No changes to the methods below ---
+
+  @override
+  Future<void> signInWithEmailAndPassword(String email, String password) async {
+    try {
+      await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
+    } on FirebaseAuthException {
+      rethrow;
     }
   }
 
