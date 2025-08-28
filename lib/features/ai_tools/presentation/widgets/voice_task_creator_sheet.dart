@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:taskflow_ai/features/ai_tools/application/ai_providers.dart';
@@ -19,6 +22,7 @@ class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
   bool _speechEnabled = false;
   String _lastWords = '';
   bool _isProcessing = false;
+  bool _permissionsGranted = false;
 
   @override
   void initState() {
@@ -27,53 +31,91 @@ class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
   }
 
   void _initSpeech() async {
-    _speechEnabled = await _speechToText.initialize();
-    setState(() {});
+    var status = await Permission.microphone.request();
+    if (status.isGranted) {
+      _permissionsGranted = true;
+      _speechEnabled = await _speechToText.initialize();
+    } else {
+      _permissionsGranted = false;
+    }
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _startListening() async {
+    if (!_permissionsGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Microphone permission is required.')),
+      );
+      return;
+    }
     await _speechToText.listen(onResult: _onSpeechResult);
     setState(() {});
   }
 
+  // --- THIS IS THE FINAL AND CORRECTED LOGIC ---
   void _stopListening() async {
     await _speechToText.stop();
+
+    // Only proceed if we have captured some words
+    if (_lastWords.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No speech detected. Please try again.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Set the UI to processing immediately
     setState(() {
       _isProcessing = true;
     });
 
-    final parsedData = await ref
+    // Call the AI processing logic and wait for it to complete.
+    // We are not awaiting it here, but handling the result in the `then()` block.
+    ref
         .read(aiControllerProvider.notifier)
         .parseTextToTask(
           text: _lastWords,
           onError: (error) {
-            // This check is important to prevent errors if the widget is disposed.
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Error: Could not process voice command.'),
+                  content: Text('Error: $error'),
                   backgroundColor: Colors.red,
                 ),
               );
-              // --- THIS IS THE CRITICAL CHANGE ---
-              // Directly reset the processing state here to ensure the UI updates.
+              log("'Error: $error'");
+
+              // On error, ensure we stop the processing state.
               setState(() {
                 _isProcessing = false;
               });
-              // --- END OF CHANGE ---
             }
           },
-        );
-
-    if (parsedData != null && mounted) {
-      Navigator.of(context).pop();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => AddEditTaskScreen(parsedTaskData: parsedData),
-        ),
-      );
-    }
+        )
+        .then((parsedData) {
+          // This block runs only after the async operation is fully complete.
+          if (parsedData != null && mounted) {
+            // If successful, navigate away.
+            Navigator.of(context).pop();
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => AddEditTaskScreen(parsedTaskData: parsedData),
+              ),
+            );
+          } else if (mounted) {
+            // If it fails for any other reason, ensure we stop the processing state.
+            setState(() {
+              _isProcessing = false;
+            });
+          }
+        });
   }
+  // --- END OF FIX ---
 
   void _onSpeechResult(SpeechRecognitionResult result) {
     setState(() {
@@ -95,9 +137,9 @@ class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
                 ? 'Processing...'
                 : _speechToText.isListening
                 ? 'Listening...'
-                : _speechEnabled
+                : _permissionsGranted
                 ? 'Tap the mic to start'
-                : 'Speech not available',
+                : 'Microphone permission needed',
             style: GoogleFonts.lato(textStyle: theme.textTheme.headlineSmall),
           ),
           Expanded(
@@ -108,7 +150,6 @@ class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
               ),
             ),
           ),
-          // Show a spinner if processing, otherwise show the mic button.
           if (_isProcessing)
             const CircularProgressIndicator()
           else
@@ -117,6 +158,9 @@ class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
                   ? _stopListening
                   : _startListening,
               tooltip: 'Listen',
+              backgroundColor: _permissionsGranted
+                  ? theme.primaryColor
+                  : Colors.grey,
               child: Icon(
                 _speechToText.isNotListening ? Icons.mic_off : Icons.mic,
               ),

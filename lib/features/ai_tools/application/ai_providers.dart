@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taskflow_ai/core/services/config_service.dart'; // Import the service
 import 'package:taskflow_ai/features/ai_tools/domain/ai_repository.dart';
 import 'package:taskflow_ai/features/ai_tools/domain/parsed_task_data_model.dart';
 import 'package:taskflow_ai/features/ai_tools/infrastructure/gemini_ai_repository.dart';
 
 // 1. Repository Provider
 final aiRepositoryProvider = Provider<AIRepository>((ref) {
-  return GeminiAIRepository();
+  // Get the API key from our central ConfigService and pass it to the repository.
+  final apiKey = ConfigService.instance.geminiApiKey;
+  return GeminiAIRepository(apiKey: apiKey);
 });
 
 // 2. AI Controller Provider
@@ -21,9 +24,6 @@ class AIController extends StateNotifier<bool> {
     : _aiRepository = aiRepository,
       super(false); // State represents loading status
 
-  // --- THIS IS THE CRITICAL CHANGE ---
-  // The method now returns the parsed data on success and calls an onError
-  // callback on failure, preventing the app from freezing.
   Future<ParsedTaskData?> parseTextToTask({
     required String text,
     required Function(String) onError,
@@ -41,6 +41,4 @@ class AIController extends StateNotifier<bool> {
     }
     return parsedData;
   }
-
-  // --- END OF CHANGE ---
 }
