@@ -6,8 +6,8 @@ abstract class AuthRepository {
   User? get currentUser;
 
   // --- THIS IS THE FIX ---
-  // The method now requires the user ID, removing ambiguity.
-  Future<UserProfile?> getUserProfile(String userId);
+  // We now watch the profile in real-time instead of fetching it once.
+  Stream<UserProfile?> watchUserProfile(String userId);
   // --- END OF FIX ---
 
   Future<void> signUpWithEmailAndPassword({

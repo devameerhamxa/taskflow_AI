@@ -10,7 +10,11 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userProfileAsync = ref.watch(userProfileProvider);
+    // --- THIS IS THE FIX ---
+    // Watch the new StreamProvider instead of the old FutureProvider.
+    final userProfileAsync = ref.watch(userProfileStreamProvider);
+    // --- END OF FIX ---
+
     final tasksAsync = ref.watch(tasksStreamProvider);
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;

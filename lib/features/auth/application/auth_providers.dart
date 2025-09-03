@@ -16,24 +16,23 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
 });
 
 // --- THIS IS THE FIX ---
-// 4. User Profile Provider (Corrected Logic)
-final userProfileProvider = FutureProvider<UserProfile?>((ref) {
-  // Watch the AsyncValue of the auth state stream
+// We now use a StreamProvider to get a real-time stream of the user profile.
+// This solves the race condition permanently.
+final userProfileStreamProvider = StreamProvider<UserProfile?>((ref) {
   final authState = ref.watch(authStateChangesProvider);
   final authRepository = ref.watch(authRepositoryProvider);
-
-  // Get the user from the AsyncValue.data
   final user = authState.asData?.value;
 
-  // If the user is logged in, fetch their profile. Otherwise, return null.
   if (user != null) {
-    return authRepository.getUserProfile(user.uid);
+    // If we have a user, we return the stream from the repository.
+    return authRepository.watchUserProfile(user.uid);
   }
-  return null;
+  // If no user is logged in, we return a stream that constantly emits null.
+  return Stream.value(null);
 });
 // --- END OF FIX ---
 
-// 3. Auth Controller Provider (no change needed here)
+// 3. Auth Controller Provider (no change)
 final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   ref,
 ) {
