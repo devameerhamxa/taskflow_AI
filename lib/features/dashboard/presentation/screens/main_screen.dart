@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taskflow_ai/features/dashboard/presentation/screens/home_screen.dart';
+import 'package:taskflow_ai/features/dashboard/presentation/screens/profile_screen.dart';
 import 'package:taskflow_ai/features/tasks/presentation/screens/task_list_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -12,12 +13,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
+  // Replace the placeholder with the actual ProfileScreen
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     TaskListScreen(),
-    // Add other main screens here later, e.g., AI Tools Hub, Profile
-    Scaffold(body: Center(child: Text('AI Tools Hub'))),
-    Scaffold(body: Center(child: Text('Profile'))),
+    Scaffold(body: Center(child: Text('AI Tools Hub'))), // Placeholder
+    ProfileScreen(), // <-- UPDATED
   ];
 
   void _onItemTapped(int index) {
@@ -55,7 +56,7 @@ class _MainScreenState extends State<MainScreen> {
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed, // Good for 4+ items
+        type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
       ),
     );

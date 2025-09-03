@@ -5,8 +5,10 @@ abstract class AuthRepository {
   Stream<User?> get authStateChanges;
   User? get currentUser;
 
-  // New method to get user profile
-  Future<UserProfile?> getUserProfile();
+  // --- THIS IS THE FIX ---
+  // The method now requires the user ID, removing ambiguity.
+  Future<UserProfile?> getUserProfile(String userId);
+  // --- END OF FIX ---
 
   Future<void> signUpWithEmailAndPassword({
     required String email,

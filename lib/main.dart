@@ -3,8 +3,10 @@ import 'dart:developer';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import package
 import 'package:taskflow_ai/core/constants/app_theme.dart';
-import 'package:taskflow_ai/core/services/config_service.dart'; // Import the new service
+import 'package:taskflow_ai/core/providers/theme_provider.dart';
+import 'package:taskflow_ai/core/services/config_service.dart';
 import 'package:taskflow_ai/features/auth/presentation/screens/auth_gate.dart';
 import 'package:taskflow_ai/firebase_options.dart';
 
@@ -13,21 +15,27 @@ Future<void> main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Initialize our new ConfigService to load all secret keys
-      await ConfigService.instance.initialize();
+      // --- THIS IS THE FIX ---
+      // 1. Initialize SharedPreferences here.
+      final prefs = await SharedPreferences.getInstance();
+      // --- END OF FIX ---
 
-      // Initialize Firebase
+      await ConfigService.instance.initialize();
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-
-      // Global Flutter error handler
       FlutterError.onError = (FlutterErrorDetails details) {
         FlutterError.presentError(details);
         log("🔥 Flutter Error: ${details.exceptionAsString()}");
       };
 
-      runApp(const ProviderScope(child: MyApp()));
+      // 2. Override the provider with the initialized instance.
+      runApp(
+        ProviderScope(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+          child: const MyApp(),
+        ),
+      );
     },
     (error, stackTrace) {
       log("💥 Uncaught Error: $error");
@@ -36,16 +44,18 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeNotifierProvider);
+
     return MaterialApp(
       title: 'TaskFlow AI',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       debugShowCheckedModeBanner: false,
       home: const AuthGate(),
     );

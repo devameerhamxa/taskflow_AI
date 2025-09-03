@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -25,16 +24,16 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   User? get currentUser => _firebaseAuth.currentUser;
 
+  // --- THIS IS THE FIX ---
+  // The method now uses the provided userId, making it reliable.
   @override
-  Future<UserProfile?> getUserProfile() async {
-    if (currentUser == null) return null;
+  Future<UserProfile?> getUserProfile(String userId) async {
     try {
       final docSnapshot = await _firestore
           .collection('users')
-          .doc(currentUser!.uid)
+          .doc(userId)
           .get();
       if (docSnapshot.exists) {
-        // This will now work correctly
         return UserProfile.fromSnapshot(docSnapshot);
       }
       return null;
@@ -43,7 +42,9 @@ class FirebaseAuthRepository implements AuthRepository {
       return null;
     }
   }
+  // --- END OF FIX ---
 
+  // ... (no changes to other methods like signUp, signInWithGoogle, etc.) ...
   @override
   Future<void> signUpWithEmailAndPassword({
     required String email,
@@ -58,12 +59,11 @@ class FirebaseAuthRepository implements AuthRepository {
 
       if (userCredential.user != null) {
         final userProfile = UserProfile(
-          id: userCredential.user!.uid, // Correctly using 'id'
+          id: userCredential.user!.uid,
           name: name,
           email: email,
-          createdAt: DateTime.now(), // This is a placeholder
+          createdAt: DateTime.now(),
         );
-        // This will now work correctly
         await _firestore
             .collection('users')
             .doc(userCredential.user!.uid)
@@ -92,12 +92,11 @@ class FirebaseAuthRepository implements AuthRepository {
       if (userCredential.additionalUserInfo?.isNewUser == true &&
           userCredential.user != null) {
         final userProfile = UserProfile(
-          id: userCredential.user!.uid, // Correctly using 'id'
+          id: userCredential.user!.uid,
           name: userCredential.user!.displayName ?? 'No Name',
           email: userCredential.user!.email!,
-          createdAt: DateTime.now(), // This is a placeholder
+          createdAt: DateTime.now(),
         );
-        // This will now work correctly
         await _firestore
             .collection('users')
             .doc(userCredential.user!.uid)
@@ -107,8 +106,6 @@ class FirebaseAuthRepository implements AuthRepository {
       rethrow;
     }
   }
-
-  // --- No changes to the methods below ---
 
   @override
   Future<void> signInWithEmailAndPassword(String email, String password) async {
