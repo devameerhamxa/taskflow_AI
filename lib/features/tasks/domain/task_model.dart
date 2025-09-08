@@ -1,15 +1,9 @@
-
 // ignore_for_file: unintended_html_in_doc_comment
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-/// A custom enum to define the priority levels for a task.
-/// Using an enum makes the code safer and more readable than using raw integers.
 enum TaskPriority { low, medium, high }
 
-/// The core data model for a task in the TaskFlow AI app.
-/// This class is immutable, which is a best practice in Flutter/Riverpod.
 @immutable
 class Task {
   final String id;
@@ -18,7 +12,7 @@ class Task {
   final DateTime dueDate;
   final bool isCompleted;
   final TaskPriority priority;
-  final String? projectId; // Can be null if not assigned to a project
+  final String? projectId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -34,8 +28,6 @@ class Task {
     required this.updatedAt,
   });
 
-  /// Creates a copy of the current Task instance with updated fields.
-  /// This is useful for updating the state of a task without mutating the original.
   Task copyWith({
     String? id,
     String? title,
@@ -60,14 +52,13 @@ class Task {
     );
   }
 
-  /// Converts a Task object into a Map<String, dynamic> format for Firestore.
   Map<String, dynamic> toJson() {
     return {
       'title': title,
       'description': description,
       'dueDate': Timestamp.fromDate(dueDate),
       'isCompleted': isCompleted,
-      'priority': priority.name, // Store enum as a string (e.g., 'high')
+      'priority': priority.name,
       'projectId': projectId,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
