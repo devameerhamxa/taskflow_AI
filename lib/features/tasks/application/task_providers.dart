@@ -4,20 +4,18 @@ import 'package:taskflow_ai/features/tasks/domain/task_repository.dart';
 import 'package:taskflow_ai/features/tasks/infrastructure/firebase_task_repository.dart';
 import 'package:uuid/uuid.dart';
 
-// 1. Repository Provider
+// Repository Provider
 final taskRepositoryProvider = Provider<TaskRepository>((ref) {
   return FirebaseTaskRepository();
 });
 
-// 2. Tasks Stream Provider
-// Provides a real-time stream of the user's tasks.
+// Tasks Stream Provider
 final tasksStreamProvider = StreamProvider<List<Task>>((ref) {
   final taskRepository = ref.watch(taskRepositoryProvider);
   return taskRepository.watchAllTasks();
 });
 
-// 3. Task Controller Provider (StateNotifier)
-// Manages business logic like creating, updating, and deleting tasks.
+// Task Controller Provider (StateNotifier)
 final taskControllerProvider = StateNotifierProvider<TaskController, bool>((
   ref,
 ) {
@@ -49,8 +47,8 @@ class TaskController extends StateNotifier<bool> {
         description: description,
         dueDate: dueDate,
         priority: priority,
-        createdAt: DateTime.now(), // Will be overwritten by server timestamp
-        updatedAt: DateTime.now(), // Will be overwritten by server timestamp
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       await _taskRepository.createTask(newTask);
 
