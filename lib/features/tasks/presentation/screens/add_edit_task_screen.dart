@@ -10,13 +10,9 @@ import 'package:taskflow_ai/features/tasks/domain/task_model.dart';
 
 class AddEditTaskScreen extends ConsumerStatefulWidget {
   final Task? task;
-  final ParsedTaskData? parsedTaskData; // New property
+  final ParsedTaskData? parsedTaskData;
 
-  const AddEditTaskScreen({
-    super.key,
-    this.task,
-    this.parsedTaskData, // Add to constructor
-  });
+  const AddEditTaskScreen({super.key, this.task, this.parsedTaskData});
 
   @override
   ConsumerState<AddEditTaskScreen> createState() => _AddEditTaskScreenState();
@@ -34,7 +30,7 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill from parsed data if available, otherwise use existing logic
+
     _titleController = TextEditingController(
       text: widget.parsedTaskData?.title ?? widget.task?.title ?? '',
     );
