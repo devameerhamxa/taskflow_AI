@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -19,7 +21,6 @@ class VoiceTaskCreatorSheet extends ConsumerStatefulWidget {
 
 class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
   final SpeechToText _speechToText = SpeechToText();
-  bool _speechEnabled = false;
   String _lastWords = '';
   bool _isProcessing = false;
   bool _permissionsGranted = false;
@@ -34,7 +35,6 @@ class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
     var status = await Permission.microphone.request();
     if (status.isGranted) {
       _permissionsGranted = true;
-      _speechEnabled = await _speechToText.initialize();
     } else {
       _permissionsGranted = false;
     }
@@ -54,7 +54,6 @@ class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
     setState(() {});
   }
 
-  // --- THIS IS THE FINAL AND CORRECTED LOGIC ---
   void _stopListening() async {
     await _speechToText.stop();
 
@@ -75,7 +74,7 @@ class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
     });
 
     // Call the AI processing logic and wait for it to complete.
-    // We are not awaiting it here, but handling the result in the `then()` block.
+
     ref
         .read(aiControllerProvider.notifier)
         .parseTextToTask(
@@ -115,7 +114,6 @@ class _VoiceTaskCreatorSheetState extends ConsumerState<VoiceTaskCreatorSheet> {
           }
         });
   }
-  // --- END OF FIX ---
 
   void _onSpeechResult(SpeechRecognitionResult result) {
     setState(() {

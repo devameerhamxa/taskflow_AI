@@ -13,8 +13,7 @@ class ParsedTaskData {
     this.priority = TaskPriority.medium,
   });
 
-  // A factory constructor to create ParsedTaskData from a JSON map
-  // that we expect to receive from the Gemini API.
+  // A factory constructor to create ParsedTaskData from a JSON map object.
   factory ParsedTaskData.fromJson(Map<String, dynamic> json) {
     // Safely parse the due date
     DateTime? parsedDueDate;

@@ -9,20 +9,15 @@ class GeminiAIRepository implements AIRepository {
   final String _apiKey;
 
   // This constructor requires the API key to be passed in.
-  // This is the correct pattern we established.
   GeminiAIRepository({required String apiKey}) : _apiKey = apiKey;
 
   @override
   Future<ParsedTaskData> parseTextToTask(String text) async {
-    // --- THIS IS THE BULLETPROOF FIX ---
-    // We now build the URI using its safe constructor instead of a simple string.
-    // This completely prevents the "Scheme not starting with alphabetic character" error.
     final url = Uri.https(
-      'generativelanguage.googleapis.com', // The base domain
-      '/v1beta/models/$_model:generateContent', // The path
-      {'key': _apiKey}, // The query parameters, handled safely
+      'generativelanguage.googleapis.com',
+      '/v1beta/models/$_model:generateContent',
+      {'key': _apiKey},
     );
-    // --- END OF FIX ---
 
     final prompt =
         """
@@ -217,7 +212,7 @@ class GeminiAIRepository implements AIRepository {
       );
 
       log('API Response Status Code: ${response.statusCode}');
-      log('API Response Body: ${response.body}');
+      // log('API Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);

@@ -1,17 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taskflow_ai/core/services/config_service.dart'; // Import the service
+import 'package:taskflow_ai/core/services/config_service.dart';
 import 'package:taskflow_ai/features/ai_tools/domain/ai_repository.dart';
 import 'package:taskflow_ai/features/ai_tools/domain/parsed_task_data_model.dart';
 import 'package:taskflow_ai/features/ai_tools/infrastructure/gemini_ai_repository.dart';
 
-// 1. Repository Provider
+// Repository Provider
 final aiRepositoryProvider = Provider<AIRepository>((ref) {
-  // Get the API key from our central ConfigService and pass it to the repository.
   final apiKey = ConfigService.instance.geminiApiKey;
   return GeminiAIRepository(apiKey: apiKey);
 });
 
-// 2. AI Controller Provider
+// AI Controller Provider
 final aiControllerProvider = StateNotifierProvider<AIController, bool>((ref) {
   final aiRepository = ref.watch(aiRepositoryProvider);
   return AIController(aiRepository: aiRepository);
@@ -33,7 +32,6 @@ class AIController extends StateNotifier<bool> {
     try {
       parsedData = await _aiRepository.parseTextToTask(text);
     } catch (e) {
-      // If an error occurs, call the onError callback with the message.
       onError(e.toString());
     } finally {
       // Ensure the loading state is always reset.

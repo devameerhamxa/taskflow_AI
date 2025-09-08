@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// 1. A new provider that will expose the SharedPreferences instance.
-// We throw an error because it MUST be overridden in main.dart.
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError();
 });
 
-// 2. The theme provider now depends on the SharedPreferences provider.
+// Provider for ThemeNotifier.
 final themeNotifierProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((
   ref,
 ) {
@@ -20,7 +18,7 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
   static const _themePreferenceKey = 'theme_preference';
   final SharedPreferences _prefs;
 
-  // 3. The constructor now accepts the SharedPreferences instance.
+  // Constructor for ThemeNotifier.
   ThemeNotifier(this._prefs) : super(ThemeMode.system) {
     _loadTheme();
   }

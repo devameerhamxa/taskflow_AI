@@ -5,10 +5,8 @@ abstract class AuthRepository {
   Stream<User?> get authStateChanges;
   User? get currentUser;
 
-  // --- THIS IS THE FIX ---
   // We now watch the profile in real-time instead of fetching it once.
   Stream<UserProfile?> watchUserProfile(String userId);
-  // --- END OF FIX ---
 
   Future<void> signUpWithEmailAndPassword({
     required String email,

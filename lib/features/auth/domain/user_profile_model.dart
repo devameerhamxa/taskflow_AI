@@ -15,19 +15,14 @@ class UserProfile {
     required this.createdAt,
   });
 
-  /// Converts a UserProfile object into a Map<String, dynamic> for Firestore.
-  /// Note: We exclude 'id' since it's stored as the document ID, not a field.
   Map<String, dynamic> toJson() {
     return {
       'name': name,
       'email': email,
-      'createdAt':
-          FieldValue.serverTimestamp(), // Let Firestore handle the timestamp
+      'createdAt': FieldValue.serverTimestamp(),
     };
   }
 
-  /// Alternative toJson method that preserves the DateTime for immediate use
-  /// Use this when you need the actual DateTime value right after creation
   Map<String, dynamic> toJsonWithDateTime() {
     return {
       'name': name,
@@ -54,8 +49,8 @@ class UserProfile {
     );
   }
 
-  /// Creates a UserProfile object from a regular DocumentSnapshot (without generics)
-  /// Useful for compatibility with different snapshot types
+  // Creates a UserProfile object from a regular DocumentSnapshot (without generics)
+
   factory UserProfile.fromSnapshotGeneric(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>?;
 

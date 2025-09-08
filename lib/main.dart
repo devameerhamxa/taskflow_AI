@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import package
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskflow_ai/core/constants/app_theme.dart';
 import 'package:taskflow_ai/core/providers/theme_provider.dart';
 import 'package:taskflow_ai/core/services/config_service.dart';
@@ -15,10 +15,7 @@ Future<void> main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // --- THIS IS THE FIX ---
-      // 1. Initialize SharedPreferences here.
       final prefs = await SharedPreferences.getInstance();
-      // --- END OF FIX ---
 
       await ConfigService.instance.initialize();
       await Firebase.initializeApp(
@@ -29,7 +26,6 @@ Future<void> main() async {
         log("🔥 Flutter Error: ${details.exceptionAsString()}");
       };
 
-      // 2. Override the provider with the initialized instance.
       runApp(
         ProviderScope(
           overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],

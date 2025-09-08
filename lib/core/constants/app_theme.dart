@@ -1,6 +1,4 @@
 // ignore_for_file: deprecated_member_use
-
-
 import 'package:flutter/material.dart';
 import 'package:taskflow_ai/features/tasks/domain/task_model.dart';
 
@@ -69,7 +67,10 @@ class AppTheme {
     ),
     textTheme: const TextTheme(
       // Define text styles here
-      headlineMedium: TextStyle(color: lightTextPrimary, fontWeight: FontWeight.bold),
+      headlineMedium: TextStyle(
+        color: lightTextPrimary,
+        fontWeight: FontWeight.bold,
+      ),
       bodyMedium: TextStyle(color: lightTextSecondary),
     ),
     // Define other theme properties like AppBarTheme, ButtonTheme, etc.
@@ -90,7 +91,10 @@ class AppTheme {
       onBackground: darkTextPrimary,
     ),
     textTheme: const TextTheme(
-      headlineMedium: TextStyle(color: darkTextPrimary, fontWeight: FontWeight.bold),
+      headlineMedium: TextStyle(
+        color: darkTextPrimary,
+        fontWeight: FontWeight.bold,
+      ),
       bodyMedium: TextStyle(color: darkTextSecondary),
     ),
     // Define other theme properties
