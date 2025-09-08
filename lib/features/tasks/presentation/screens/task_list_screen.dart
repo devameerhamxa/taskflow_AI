@@ -21,7 +21,7 @@ class TaskListScreen extends ConsumerWidget {
           'My Tasks',
           style: GoogleFonts.lato(fontWeight: FontWeight.bold),
         ),
-        // We removed the logout button from here since it's on the dashboard
+
         elevation: 0,
         backgroundColor: theme.scaffoldBackgroundColor,
       ),
@@ -68,12 +68,12 @@ class TaskListScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),
-      // Use a Row to have two FloatingActionButtons
+
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            heroTag: 'manualAddTaskBtn', // Hero tags must be unique
+            heroTag: 'manualAddTaskBtn',
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const AddEditTaskScreen()),
