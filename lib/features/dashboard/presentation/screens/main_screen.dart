@@ -13,12 +13,11 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // Replace the placeholder with the actual ProfileScreen
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     TaskListScreen(),
-    Scaffold(body: Center(child: Text('AI Tools Hub'))), // Placeholder
-    ProfileScreen(), // <-- UPDATED
+    Scaffold(body: Center(child: Text('AI Tools Hub'))),
+    ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
