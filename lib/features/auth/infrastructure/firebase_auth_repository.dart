@@ -151,7 +151,7 @@ class FirebaseAuthRepository implements AuthRepository {
         '[AuthRepo] Firebase Auth user created. UID: ${userCredential.user?.uid}',
       );
       log(
-        '[AuthRepo] 📋 User details - Email: ${userCredential.user?.email}, EmailVerified: ${userCredential.user?.emailVerified}',
+        '[AuthRepo] User details - Email: ${userCredential.user?.email}, EmailVerified: ${userCredential.user?.emailVerified}',
       );
 
       if (userCredential.user != null) {
@@ -236,13 +236,8 @@ class FirebaseAuthRepository implements AuthRepository {
       try {
         // Get the authentication details
         final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-
-        // For newer versions, the property might be different
-        // Try these variations:
         final AuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
-          // Remove accessToken if it doesn't exist in your version
-          // accessToken: googleAuth.accessToken,
         );
 
         final userCredential = await _firebaseAuth.signInWithCredential(

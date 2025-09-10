@@ -35,7 +35,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
                 loading: () => const SizedBox(height: 34),
-                error: (_, __) => const Text('Hello, User!'),
+                error: (_, _) => const Text('Hello, User!'),
               ),
               Text(
                 'Let\'s make today productive.',
@@ -65,7 +65,7 @@ class HomeScreen extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const SizedBox(),
+                error: (_, _) => const SizedBox(),
               ),
               const SizedBox(height: 20),
 
