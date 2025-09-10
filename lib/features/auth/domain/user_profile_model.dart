@@ -1,27 +1,103 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 @immutable
 class UserProfile {
-  final String uid;
+  final String id;
   final String name;
   final String email;
+  final DateTime createdAt;
 
   const UserProfile({
-    required this.uid,
+    required this.id,
     required this.name,
     required this.email,
+    required this.createdAt,
   });
 
-  // A factory constructor to create a UserProfile from a Firestore document.
-  factory UserProfile.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
-    final data = doc.data() ?? {};
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'email': email,
+      'createdAt': FieldValue.serverTimestamp(),
+    };
+  }
+
+  Map<String, dynamic> toJsonWithDateTime() {
+    return {
+      'name': name,
+      'email': email,
+      'createdAt': Timestamp.fromDate(createdAt),
+    };
+  }
+
+  /// Creates a UserProfile object from a Firestore document snapshot.
+  factory UserProfile.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data();
+
+    // Handle case where document exists but has no data
+    if (data == null) {
+      throw Exception('Document exists but contains no data');
+    }
+
     return UserProfile(
-      uid: doc.id,
-      name: data['name'] ?? 'No Name',
-      email: data['email'] ?? 'No Email',
+      id: doc.id,
+      name: data['name'] ?? '',
+      email: data['email'] ?? '',
+      // Handle potential null timestamp during creation before server populates it
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
+  }
+
+  // Creates a UserProfile object from a regular DocumentSnapshot (without generics)
+
+  factory UserProfile.fromSnapshotGeneric(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>?;
+
+    if (data == null) {
+      throw Exception('Document exists but contains no data');
+    }
+
+    return UserProfile(
+      id: doc.id,
+      name: data['name'] ?? '',
+      email: data['email'] ?? '',
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    );
+  }
+
+  /// Creates a copy of this UserProfile with updated fields
+  UserProfile copyWith({
+    String? id,
+    String? name,
+    String? email,
+    DateTime? createdAt,
+  }) {
+    return UserProfile(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'UserProfile(id: $id, name: $name, email: $email, createdAt: $createdAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is UserProfile &&
+        other.id == id &&
+        other.name == name &&
+        other.email == email &&
+        other.createdAt == createdAt;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^ name.hashCode ^ email.hashCode ^ createdAt.hashCode;
   }
 }

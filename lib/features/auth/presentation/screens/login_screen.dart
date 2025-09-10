@@ -166,7 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       icon: SvgPicture.asset(
                         'assets/svgs/google.svg',
                         height: 24,
-                      ), // Make sure to add a google logo to your assets
+                      ),
                       label: const Text('Sign In with Google'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDarkMode

@@ -1,34 +1,38 @@
+// ignore_for_file: unused_field
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskflow_ai/features/auth/domain/auth_repository.dart';
 import 'package:taskflow_ai/features/auth/domain/user_profile_model.dart';
 import 'package:taskflow_ai/features/auth/infrastructure/firebase_auth_repository.dart';
 
-// 1. Repository Provider
+// Repository Provider
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return FirebaseAuthRepository();
 });
 
-// 2. Auth State Changes Provider
+// Auth State Changes Provider
 final authStateChangesProvider = StreamProvider<User?>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return authRepository.authStateChanges;
 });
 
-// --- NEW USER PROFILE PROVIDER ---
-// This provider fetches the UserProfile data from Firestore.
-final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
+
+final userProfileStreamProvider = StreamProvider<UserProfile?>((ref) {
+  final authState = ref.watch(authStateChangesProvider);
   final authRepository = ref.watch(authRepositoryProvider);
-  final user = ref.watch(authStateChangesProvider).value;
+  final user = authState.asData?.value;
 
   if (user != null) {
-    return authRepository.getUserProfile(user.uid);
+    // If we have a user, we return the stream from the repository.
+    return authRepository.watchUserProfile(user.uid);
   }
-  return null;
+  // If no user is logged in, we return a stream that constantly emits null.
+  return Stream.value(null);
 });
-// --------------------------------
 
-// 3. Auth Controller Provider (StateNotifier)
+
+// Auth Controller Provider
 final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   ref,
 ) {

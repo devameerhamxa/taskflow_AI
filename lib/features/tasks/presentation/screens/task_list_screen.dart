@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:taskflow_ai/core/constants/app_theme.dart';
-import 'package:taskflow_ai/features/auth/application/auth_providers.dart';
+import 'package:taskflow_ai/features/ai_tools/presentation/widgets/voice_task_creator_sheet.dart';
 import 'package:taskflow_ai/features/tasks/application/task_providers.dart';
 import 'package:taskflow_ai/features/tasks/presentation/screens/add_edit_task_screen.dart';
 import 'package:taskflow_ai/features/tasks/presentation/widgets/task_tile.dart';
@@ -21,13 +21,7 @@ class TaskListScreen extends ConsumerWidget {
           'My Tasks',
           style: GoogleFonts.lato(fontWeight: FontWeight.bold),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () =>
-                ref.read(authControllerProvider.notifier).signOut(),
-          ),
-        ],
+
         elevation: 0,
         backgroundColor: theme.scaffoldBackgroundColor,
       ),
@@ -52,7 +46,8 @@ class TaskListScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap the + button to add your first task.',
+                    'Tap the + button to add a task manually,\nor the microphone to add by voice.',
+                    textAlign: TextAlign.center,
                     style: GoogleFonts.lato(
                       textStyle: theme.textTheme.bodyMedium,
                     ),
@@ -73,15 +68,34 @@ class TaskListScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to AddEditTaskScreen for creating a new task
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const AddEditTaskScreen()));
-        },
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
+
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'manualAddTaskBtn',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AddEditTaskScreen()),
+              );
+            },
+            backgroundColor: AppTheme.primaryColor,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+          const SizedBox(width: 16),
+          FloatingActionButton(
+            heroTag: 'voiceAddTaskBtn',
+            onPressed: () {
+              // Show the voice input bottom sheet
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => const VoiceTaskCreatorSheet(),
+              );
+            },
+            backgroundColor: Colors.green,
+            child: const Icon(Icons.mic, color: Colors.white),
+          ),
+        ],
       ),
     );
   }

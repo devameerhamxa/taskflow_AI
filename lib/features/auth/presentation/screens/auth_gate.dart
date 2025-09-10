@@ -4,7 +4,7 @@ import 'package:taskflow_ai/features/auth/application/auth_providers.dart';
 import 'package:taskflow_ai/features/auth/presentation/screens/login_screen.dart';
 import 'package:taskflow_ai/features/auth/presentation/screens/splash_screen.dart';
 import 'package:taskflow_ai/features/auth/presentation/screens/verify_email_screen.dart';
-import 'package:taskflow_ai/features/dashboard/presentation/screens/home_screen.dart';
+import 'package:taskflow_ai/features/dashboard/presentation/screens/main_screen.dart';
 
 class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});
@@ -16,16 +16,13 @@ class AuthGate extends ConsumerWidget {
     return authState.when(
       data: (user) {
         if (user != null) {
-          // If the user signed up with email, check if it's verified.
-          // Google Sign-In users are verified by default.
           if (user.providerData.any((p) => p.providerId == 'password') &&
               !user.emailVerified) {
             return const VerifyEmailScreen();
           }
-          // If verified or a Google user, show the main app.
-          return const HomeScreen();
+          // Navigate to MainScreen instead of TaskListScreen
+          return const MainScreen();
         }
-        // If the user is not logged in, show the LoginScreen.
         return const LoginScreen();
       },
       loading: () => const SplashScreen(),
