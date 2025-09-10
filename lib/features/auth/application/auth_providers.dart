@@ -1,23 +1,23 @@
+// ignore_for_file: unused_field
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskflow_ai/features/auth/domain/auth_repository.dart';
 import 'package:taskflow_ai/features/auth/domain/user_profile_model.dart';
 import 'package:taskflow_ai/features/auth/infrastructure/firebase_auth_repository.dart';
 
-// 1. Repository Provider (no change)
+// Repository Provider
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return FirebaseAuthRepository();
 });
 
-// 2. Auth State Changes Provider (no change)
+// Auth State Changes Provider
 final authStateChangesProvider = StreamProvider<User?>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return authRepository.authStateChanges;
 });
 
-// --- THIS IS THE FIX ---
-// We now use a StreamProvider to get a real-time stream of the user profile.
-// This solves the race condition permanently.
+
 final userProfileStreamProvider = StreamProvider<UserProfile?>((ref) {
   final authState = ref.watch(authStateChangesProvider);
   final authRepository = ref.watch(authRepositoryProvider);
@@ -30,9 +30,9 @@ final userProfileStreamProvider = StreamProvider<UserProfile?>((ref) {
   // If no user is logged in, we return a stream that constantly emits null.
   return Stream.value(null);
 });
-// --- END OF FIX ---
 
-// 3. Auth Controller Provider (no change)
+
+// Auth Controller Provider
 final authControllerProvider = StateNotifierProvider<AuthController, bool>((
   ref,
 ) {

@@ -16,7 +16,7 @@ class FirebaseAuthRepository implements AuthRepository {
     GoogleSignIn? googleSignIn,
   }) : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
        _firestore = firestore ?? FirebaseFirestore.instance,
-       _googleSignIn = googleSignIn ?? GoogleSignIn();
+       _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
 
   @override
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -217,102 +217,108 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> signInWithGoogle() async {
     try {
-      // log('[AuthRepo] Starting Google Sign-In process...');
+      log('[AuthRepo] Starting Google Sign-In process...');
 
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser =
+          (GoogleSignIn.instance) as GoogleSignInAccount?;
+
+      // Handle user cancellation
       if (googleUser == null) {
-        return;
+        log('[AuthRepo] Google sign-in was cancelled by user');
+        throw FirebaseAuthException(
+          code: 'sign_in_cancelled',
+          message: 'Google sign in was cancelled by the user',
+        );
       }
 
       log('[AuthRepo] Google account selected: ${googleUser.email}');
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+      try {
+        // Get the authentication details
+        final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      final userCredential = await _firebaseAuth.signInWithCredential(
-        credential,
-      );
-
-      log('[AuthRepo] Firebase sign-in successful');
-      log(
-        '[AuthRepo] User: ${userCredential.user?.email}, UID: ${userCredential.user?.uid}',
-      );
-      log(
-        '[AuthRepo] Is new user: ${userCredential.additionalUserInfo?.isNewUser}',
-      );
-
-      if (userCredential.additionalUserInfo?.isNewUser == true &&
-          userCredential.user != null) {
-        final user = userCredential.user!;
-        final userProfile = UserProfile(
-          id: user.uid,
-          name: user.displayName ?? 'Google User',
-          email: user.email!,
-          createdAt: DateTime.now(),
+        // For newer versions, the property might be different
+        // Try these variations:
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          idToken: googleAuth.idToken,
+          // Remove accessToken if it doesn't exist in your version
+          // accessToken: googleAuth.accessToken,
         );
 
-        final docRef = _firestore.collection('users').doc(user.uid);
-        await docRef.set(userProfile.toJsonWithDateTime());
+        final userCredential = await _firebaseAuth.signInWithCredential(
+          credential,
+        );
 
-        // Verify creation
-        final verifyDoc = await docRef.get();
-        if (verifyDoc.exists) {
-          log('[AuthRepo] Google profile creation verified');
-        } else {
-          log('[AuthRepo] Google profile creation verification FAILED');
-          throw Exception('Failed to create Google user profile document');
+        // Handle new user creation
+        if (userCredential.additionalUserInfo?.isNewUser == true &&
+            userCredential.user != null) {
+          await _createUserProfile(userCredential.user!);
+        } else if (userCredential.user != null) {
+          await _ensureUserProfileExists(userCredential.user!);
         }
-      } else if (userCredential.user != null) {
-        log('[AuthRepo] Existing user signed in');
-
-        // For existing users, let's check if their profile exists
-        final docRef = _firestore
-            .collection('users')
-            .doc(userCredential.user!.uid);
-        final doc = await docRef.get();
-
-        if (!doc.exists) {
-          log('[AuthRepo] Existing user has no profile document. Creating...');
-          await ensureUserProfileExists();
-        } else {
-          log('[AuthRepo] Existing user profile confirmed');
-        }
+      } on FirebaseAuthException catch (e) {
+        log(
+          '[AuthRepo] Firebase Auth error during Google authentication',
+          error: e,
+        );
+        rethrow;
       }
-    } on FirebaseAuthException catch (e) {
-      log(
-        '[AuthRepo] FIREBASE AUTH ERROR during Google Sign In: ${e.code} - ${e.message}',
-        error: e,
-      );
-      rethrow;
-    } on FirebaseException catch (e) {
-      log(
-        '[AuthRepo] FIRESTORE ERROR during Google Sign In: ${e.code} - ${e.message}',
-        error: e,
-      );
-      rethrow;
-    } catch (e, stackTrace) {
-      log(
-        '[AuthRepo] UNKNOWN ERROR during Google Sign In',
-        error: e,
-        stackTrace: stackTrace,
-      );
+    } catch (e) {
+      log('[AuthRepo] Error during Google sign in', error: e);
       rethrow;
     }
   }
 
-  // Helper method to verify document creation
+  // Helper method to create user profile
+  Future<void> _createUserProfile(User user) async {
+    final userProfile = UserProfile(
+      id: user.uid,
+      name: user.displayName ?? 'Google User',
+      email: user.email ?? '',
+      createdAt: DateTime.now(),
+    );
+
+    final docRef = _firestore.collection('users').doc(user.uid);
+    await docRef.set(userProfile.toJsonWithDateTime());
+
+    // Verify creation
+    final verifyDoc = await docRef.get();
+    if (!verifyDoc.exists) {
+      throw FirebaseException(
+        plugin: 'cloud_firestore',
+        code: 'profile-creation-failed',
+        message: 'Failed to create user profile document',
+      );
+    }
+  }
+
+  // Helper method to ensure profile exists
+  Future<void> _ensureUserProfileExists(User user) async {
+    final docRef = _firestore.collection('users').doc(user.uid);
+    final doc = await docRef.get();
+
+    if (!doc.exists) {
+      log('[AuthRepo] Creating missing profile for existing user');
+      await _createUserProfile(user);
+    }
+  }
+
   @override
   Future<void> signInWithEmailAndPassword(String email, String password) async {
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      if (userCredential.user != null) {
+        await _ensureUserProfileExists(userCredential.user!);
+      }
+    } on FirebaseAuthException catch (e) {
+      log('[AuthRepo] Firebase Auth error during email sign in', error: e);
+      rethrow;
     } catch (e) {
+      log('[AuthRepo] Unknown error during email sign in', error: e);
       rethrow;
     }
   }
@@ -328,7 +334,14 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
-    await _firebaseAuth.signOut();
+    try {
+      // Sign out from Google (this is safe to call even if not signed in)
+      await _googleSignIn.signOut();
+      // Then sign out from Firebase
+      await _firebaseAuth.signOut();
+    } catch (e) {
+      log('[AuthRepo] Error during sign out', error: e);
+      rethrow;
+    }
   }
 }

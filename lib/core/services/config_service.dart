@@ -1,4 +1,5 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:taskflow_ai/core/services/safe_dotenv.dart';
 
 // This class will be a singleton to hold our app configuration.
 class ConfigService {
@@ -22,7 +23,7 @@ class ConfigService {
 
   // A method to load the .env file.
   Future<void> initialize() async {
-    await dotenv.load(fileName: ".env");
+    await SafeDotEnv.load(fileName: ".env");
     _geminiApiKey = dotenv.env['GEMINI_API_KEY'];
   }
 }
