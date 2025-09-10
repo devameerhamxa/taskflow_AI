@@ -33,13 +33,9 @@ class FirebaseAuthRepository implements AuthRepository {
     return docRef.snapshots().asyncMap((snapshot) async {
       try {
         if (snapshot.exists && snapshot.data() != null) {
-          // log('[AuthRepo] User profile data received from stream');
           return UserProfile.fromSnapshotGeneric(snapshot);
         } else {
           log('[AuthRepo] Profile document missing for ID: $userId');
-          // log(
-          //   '[AuthRepo] 📊 Snapshot exists: ${snapshot.exists}, Data: ${snapshot.data()}',
-          // );
 
           // Try to create the missing profile if current user matches
           if (_firebaseAuth.currentUser?.uid == userId) {
@@ -70,7 +66,6 @@ class FirebaseAuthRepository implements AuthRepository {
   Future<UserProfile?> ensureUserProfileExists() async {
     final currentUser = _firebaseAuth.currentUser;
     if (currentUser == null) {
-      // log('[AuthRepo] Cannot ensure profile - no current user');
       return null;
     }
 
@@ -82,7 +77,6 @@ class FirebaseAuthRepository implements AuthRepository {
           .get();
 
       if (doc.exists && doc.data() != null) {
-        // log('[AuthRepo] Profile already exists');
         return UserProfile.fromSnapshotGeneric(doc);
       } else {
         log(
@@ -102,7 +96,6 @@ class FirebaseAuthRepository implements AuthRepository {
           createdAt: DateTime.now(),
         );
 
-        // log('[AuthRepo] Attempting to create profile document...');
         await _firestore
             .collection('users')
             .doc(currentUser.uid)
@@ -116,10 +109,8 @@ class FirebaseAuthRepository implements AuthRepository {
             .doc(currentUser.uid)
             .get();
         if (verifyDoc.exists) {
-          // log('[AuthRepo] Profile creation verified');
           return UserProfile.fromSnapshotGeneric(verifyDoc);
         } else {
-          // log('[AuthRepo] Profile creation verification FAILED');
           return null;
         }
       }
@@ -219,23 +210,17 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       log('[AuthRepo] Starting Google Sign-In process...');
 
-      final GoogleSignInAccount? googleUser =
-          (GoogleSignIn.instance) as GoogleSignInAccount?;
+      await _googleSignIn.initialize();
 
-      // Handle user cancellation
-      if (googleUser == null) {
-        log('[AuthRepo] Google sign-in was cancelled by user');
-        throw FirebaseAuthException(
-          code: 'sign_in_cancelled',
-          message: 'Google sign in was cancelled by the user',
-        );
-      }
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
       log('[AuthRepo] Google account selected: ${googleUser.email}');
 
       try {
         // Get the authentication details
         final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+
+        // Create credential with idToken
         final AuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
         );
@@ -256,6 +241,18 @@ class FirebaseAuthRepository implements AuthRepository {
           '[AuthRepo] Firebase Auth error during Google authentication',
           error: e,
         );
+        rethrow;
+      }
+    } on GoogleSignInException catch (e) {
+      // Handle Google Sign-In specific exceptions
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        log('[AuthRepo] Google sign-in was cancelled by user');
+        throw FirebaseAuthException(
+          code: 'sign_in_cancelled',
+          message: 'Google sign in was cancelled by the user',
+        );
+      } else {
+        log('[AuthRepo] Google Sign-In error: ${e.code} - ${e.details}');
         rethrow;
       }
     } catch (e) {
@@ -330,9 +327,8 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() async {
     try {
-      // Sign out from Google (this is safe to call even if not signed in)
       await _googleSignIn.signOut();
-      // Then sign out from Firebase
+
       await _firebaseAuth.signOut();
     } catch (e) {
       log('[AuthRepo] Error during sign out', error: e);
