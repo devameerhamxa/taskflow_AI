@@ -328,7 +328,6 @@ class FirebaseAuthRepository implements AuthRepository {
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
-
       await _firebaseAuth.signOut();
     } catch (e) {
       log('[AuthRepo] Error during sign out', error: e);
